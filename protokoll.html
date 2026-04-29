@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Meeting-Protokoll — Store-Eröffnungen</title>
+  <style>
+    :root {
+      --accent: #C8965A;
+      --accent-light: rgba(200, 150, 90, 0.12);
+      --accent-mid: rgba(200, 150, 90, 0.25);
+      --bg: #0E0E0E;
+      --surface: #161616;
+      --surface-2: #1E1E1E;
+      --border: rgba(255,255,255,0.07);
+      --text: #E8E6E1;
+      --text-muted: #7A7772;
+      --text-dim: #4A4845;
+      --radius: 16px;
+      --radius-sm: 10px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
+      font-size: 16px;
+      line-height: 1.7;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ─── HERO ─── */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 80px 24px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse 60% 50% at 50% 50%, rgba(200,150,90,0.08) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .hero-label {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--accent);
+      border: 1px solid rgba(200,150,90,0.3);
+      border-radius: 100px;
+      padding: 6px 16px;
+      margin-bottom: 32px;
+      opacity: 0;
+      animation: fadeUp 0.8s ease 0.2s forwards;
+    }
+
+    .hero h1 {
+      font-size: clamp(2.4rem, 5vw, 4rem);
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      line-height: 1.15;
+      max-width: 720px;
+      opacity: 0;
+      animation: fadeUp 0.9s ease 0.4s forwards;
+    }
+
+    .hero h1 span { color: var(--accent); }
+
+    .hero-meta {
+      margin-top: 24px;
+      font-size: 14px;
+      color: var(--text-muted);
+      opacity: 0;
+      animation: fadeUp 0.9s ease 0.6s forwards;
+    }
+
+    .hero-scroll {
+      position: absolute;
+      bottom: 40px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      opacity: 0;
+      animation: fadeUp 0.9s ease 1.2s forwards;
+    }
+
+    .hero-scroll span {
+      font-size: 11px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+    }
+
+    .scroll-line {
+      width: 1px;
+      height: 40px;
+      background: linear-gradient(to bottom, var(--accent), transparent);
+      animation: scrollPulse 2s ease-in-out infinite;
+    }
+
+    /* ─── LAYOUT ─── */
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    section {
+      padding: 100px 0;
+    }
+
+    section + section {
+      border-top: 1px solid var(--border);
+    }
+
+    /* ─── SECTION HEADER ─── */
+    .section-header {
+      margin-bottom: 56px;
+    }
+
+    .section-label {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 12px;
+    }
+
+    .section-title {
+      font-size: clamp(1.6rem, 3vw, 2.4rem);
+      font-weight: 700;
+      letter-spacing: -0.025em;
+      line-height: 1.2;
+    }
+
+    /* ─── ACTION ITEMS ─── */
+    .action-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .action-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 20px 24px;
+      transition: border-color 0.25s ease, background 0.25s ease;
+    }
+
+    .action-item:hover {
+      border-color: rgba(200,150,90,0.3);
+      background: var(--surface-2);
+    }
+
+    .action-check {
+      width: 20px;
+      height: 20px;
+      border: 2px solid rgba(200,150,90,0.4);
+      border-radius: 6px;
+      flex-shrink: 0;
+      margin-top: 2px;
+      position: relative;
+    }
+
+    .action-check::after {
+      content: '';
+      position: absolute;
+      inset: 3px;
+      border-radius: 3px;
+      background: transparent;
+    }
+
+    .action-owner {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-top: 4px;
+    }
+
+    /* ─── INFO CARDS ─── */
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 28px;
+      transition: border-color 0.25s ease, transform 0.25s ease;
+    }
+
+    .card:hover {
+      border-color: rgba(200,150,90,0.25);
+      transform: translateY(-2px);
+    }
+
+    .card-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: var(--accent-light);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      margin-bottom: 20px;
+    }
+
+    .card h3 {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 12px;
+      letter-spacing: -0.01em;
+    }
+
+    .card p, .card li {
+      font-size: 14px;
+      color: var(--text-muted);
+      line-height: 1.7;
+    }
+
+    .card ul {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .card li::before {
+      content: '–';
+      color: var(--accent);
+      margin-right: 8px;
+      font-weight: 300;
+    }
+
+    /* ─── HIGHLIGHT BOX ─── */
+    .highlight-box {
+      background: var(--accent-light);
+      border: 1px solid rgba(200,150,90,0.25);
+      border-left: 3px solid var(--accent);
+      border-radius: var(--radius-sm);
+      padding: 24px 28px;
+      margin: 32px 0;
+    }
+
+    .highlight-box p {
+      font-size: 14px;
+      color: var(--text-muted);
+    }
+
+    /* ─── TIMELINE ─── */
+    .timeline {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      position: relative;
+    }
+
+    .timeline::before {
+      content: '';
+      position: absolute;
+      left: 20px;
+      top: 0;
+      bottom: 0;
+      width: 1px;
+      background: linear-gradient(to bottom, var(--accent), var(--border) 80%, transparent);
+    }
+
+    .timeline-item {
+      display: flex;
+      gap: 24px;
+      padding: 0 0 36px 0;
+    }
+
+    .timeline-dot {
+      width: 41px;
+      flex-shrink: 0;
+      display: flex;
+      justify-content: center;
+      padding-top: 4px;
+    }
+
+    .timeline-dot-inner {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 0 3px rgba(200,150,90,0.2);
+      margin-top: 6px;
+    }
+
+    .timeline-content h4 {
+      font-size: 0.95rem;
+      font-weight: 600;
+      margin-bottom: 6px;
+      letter-spacing: -0.01em;
+    }
+
+    .timeline-content p {
+      font-size: 14px;
+      color: var(--text-muted);
+    }
+
+    /* ─── STATUS BADGES ─── */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 4px 10px;
+      border-radius: 100px;
+    }
+
+    .badge-open {
+      background: rgba(200,150,90,0.15);
+      color: var(--accent);
+      border: 1px solid rgba(200,150,90,0.3);
+    }
+
+    .badge-dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+
+    /* ─── DIVIDER ─── */
+    .divider {
+      height: 1px;
+      background: var(--border);
+      margin: 48px 0;
+    }
+
+    /* ─── FOOTER ─── */
+    footer {
+      padding: 60px 24px;
+      text-align: center;
+      border-top: 1px solid var(--border);
+    }
+
+    footer p {
+      font-size: 13px;
+      color: var(--text-dim);
+    }
+
+    footer span {
+      color: var(--accent);
+    }
+
+    /* ─── ANIMATIONS ─── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes scrollPulse {
+      0%, 100% { opacity: 0.3; transform: scaleY(1); }
+      50% { opacity: 1; transform: scaleY(1.1); }
+    }
+
+    .reveal {
+      opacity: 0;
+      transform: translateY(32px);
+      transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .reveal-delay-1 { transition-delay: 0.1s; }
+    .reveal-delay-2 { transition-delay: 0.2s; }
+    .reveal-delay-3 { transition-delay: 0.3s; }
+    .reveal-delay-4 { transition-delay: 0.4s; }
+    .reveal-delay-5 { transition-delay: 0.5s; }
+
+    /* ─── NAV ─── */
+    nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      padding: 16px 24px;
+      background: rgba(14,14,14,0.85);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid transparent;
+      transition: border-color 0.3s ease;
+    }
+
+    nav.scrolled {
+      border-bottom-color: var(--border);
+    }
+
+    .nav-inner {
+      max-width: 900px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .nav-brand {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-muted);
+      letter-spacing: 0.05em;
+    }
+
+    .nav-brand span { color: var(--accent); }
+
+    .nav-links {
+      display: flex;
+      gap: 28px;
+      list-style: none;
+    }
+
+    .nav-links a {
+      font-size: 13px;
+      color: var(--text-muted);
+      text-decoration: none;
+      transition: color 0.2s ease;
+    }
+
+    .nav-links a:hover { color: var(--text); }
+
+    @media (max-width: 600px) {
+      .nav-links { display: none; }
+      .card-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav id="nav">
+    <div class="nav-inner">
+      <div class="nav-brand">Protokoll <span>·</span> Store-Eröffnungen 2026</div>
+      <ul class="nav-links">
+        <li><a href="#action-items">Aufgaben</a></li>
+        <li><a href="#systeme">Systeme</a></li>
+        <li><a href="#marketing">Marketing</a></li>
+        <li><a href="#prozesse">Prozesse</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-label">Meeting-Protokoll · 29. April 2026</div>
+    <h1>Store-Eröffnungen <span>2026</span><br/>Übersicht & Action Items</h1>
+    <div class="hero-meta">Teilnehmer: Harshita · Jin · Denis · Dominik · Torsten · John · Sonia · Katharina</div>
+    <div class="hero-scroll">
+      <div class="scroll-line"></div>
+      <span>Scrollen</span>
+    </div>
+  </div>
+
+  <!-- ACTION ITEMS -->
+  <section id="action-items">
+    <div class="container">
+      <div class="section-header reveal">
+        <div class="section-label">Offene Punkte</div>
+        <h2 class="section-title">Action Items</h2>
+      </div>
+
+      <div class="action-grid">
+
+        <div class="action-item reveal reveal-delay-1">
+          <div class="action-check"></div>
+          <div>
+            <div>Harshita übernimmt alle Verantwortlichkeiten, die bisher bei Neha lagen</div>
+            <div class="action-owner">Harshita</div>
+          </div>
+        </div>
+
+        <div class="action-item reveal reveal-delay-2">
+          <div class="action-check"></div>
+          <div>
+            <div>Prüfen, ob Stripe alle Terminals abdeckt oder nur einzelne Stores</div>
+            <div class="action-owner">Team</div>
+          </div>
+        </div>
+
+        <div class="action-item reveal reveal-delay-3">
+          <div class="action-check"></div>
+          <div>
+            <div>Seacon-Internetbestellungen für neue Stores koordinieren</div>
+            <div class="action-owner">Harshita</div>
+          </div>
+        </div>
+
+        <div class="action-item reveal reveal-delay-4">
+          <div class="action-check"></div>
+          <div>
+            <div>Fact-Clean-Vertragsinformationen für alle Städte ermitteln und bereinigen</div>
+            <div class="action-owner">Team</div>
+          </div>
+        </div>
+
+        <div class="action-item reveal">
+          <div class="action-check"></div>
+          <div>
+            <div>Schädlingsbekämpfung (Winterkille) für alle Standorte klären</div>
+            <div class="action-owner">Team</div>
+          </div>
+        </div>
+
+        <div class="action-item reveal reveal-delay-1">
+          <div class="action-check"></div>
+          <div>
+            <div>Brandschutzausstattung einrichten</div>
+            <div class="action-owner">Dominik</div>
+          </div>
+        </div>
+
+        <div class="action-item reveal reveal-delay-2">
+          <div class="action-check"></div>
+          <div>
+            <div>Ausstattungsliste von Hasenko finalisieren und an das Team senden</div>
+            <div class="action-owner">Jin</div>
+          </div>
+        </div>
+
+        <div class="action-item reveal reveal-delay-3">
+          <div class="action-check"></div>
+          <div>
+            <div>Preisvergleich: Regale über Generalunternehmer vs. Eigenmontage</div>
+            <div class="action-owner">Jin & Denis</div>
+          </div>
+        </div>
+
+        <div class="action-item reveal reveal-delay-4">
+          <div class="action-check"></div>
+          <div>
+            <div>Hasenko vs. alternative Anbieter für Content-Stopper vergleichen</div>
+            <div class="action-owner">Jin & Team</div>
+          </div>
+        </div>
+
+        <div class="action-item reveal">
+          <div class="action-check"></div>
+          <div>
+            <div>Alle Offline-Marketing-Assets mindestens 3 Tage vor Soft Opening liefern</div>
+            <div class="action-owner">Marketing</div>
+          </div>
+        </div>
+
+        <div class="action-item reveal reveal-delay-1">
+          <div class="action-check"></div>
+          <div>
+            <div>Fenstermasse für Dresden-Store-Stickering ermitteln</div>
+            <div class="action-owner">Marketing</div>
+          </div>
+        </div>
+
+        <div class="action-item reveal reveal-delay-2">
+          <div class="action-check"></div>
+          <div>
+            <div>Wöchentliche Meetings 6 Wochen vor erster Eröffnung starten (ca. Anfang März für 17. April)</div>
+            <div class="action-owner">Team</div>
+          </div>
+        </div>
+
+        <div class="action-item reveal reveal-delay-3">
+          <div class="action-check"></div>
+          <div>
+            <div>Standardisierte Ausstattungssets für verschiedene Store-Umsatzkategorien erstellen</div>
+            <div class="action-owner">Team</div>
+          </div>
+        </div>
+
+        <div class="action-item reveal reveal-delay-4">
+          <div class="action-check"></div>
+          <div>
+            <div>Kühlung: Bedarf basierend auf Lieferplänen vor Baubeginn ermitteln</div>
+            <div class="action-owner">Denis</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- IT & SYSTEME -->
+  <section id="systeme">
+    <div class="container">
+      <div class="section-header reveal">
+        <div class="section-label">Infrastruktur</div>
+        <h2 class="section-title">IT-Systeme & Verantwortlichkeiten</h2>
+      </div>
+
+      <div class="card-grid">
+
+        <div class="card reveal reveal-delay-1">
+          <div class="card-icon">💻</div>
+          <h3>IT-Zuständigkeiten</h3>
+          <ul>
+            <li>Harshita übernimmt alle IT-Verantwortlichkeiten von Neha</li>
+            <li>Epic Base System verbleibt bei Jin</li>
+            <li>Dataf ist das Backend-System für Finanzen</li>
+          </ul>
+        </div>
+
+        <div class="card reveal reveal-delay-2">
+          <div class="card-icon">💳</div>
+          <h3>Zahlungssysteme</h3>
+          <ul>
+            <li>Stripe: Zahlungsanbieter für ausgewählte Stores</li>
+            <li>Lightspeed Payment: Alternativ in anderen Stores</li>
+            <li>Klärungsbedarf: Welche Terminals nutzen welches System?</li>
+          </ul>
+        </div>
+
+        <div class="card reveal reveal-delay-3">
+          <div class="card-icon">📡</div>
+          <h3>Telekommunikation</h3>
+          <ul>
+            <li>Seacon beauftragt Anbieter im Namen der Firma</li>
+            <li>Wird künftig intern übernommen</li>
+            <li>Harshita koordiniert ab sofort diese Bestellungen</li>
+          </ul>
+        </div>
+
+        <div class="card reveal reveal-delay-4">
+          <div class="card-icon">🔌</div>
+          <h3>Facility Services</h3>
+          <ul>
+            <li>Strom: Nima zuständig</li>
+            <li>Fact Clean: Vertragsstatus unklar, Klärung nötig</li>
+            <li>Pest Control: Abdeckung je Standort prüfen</li>
+            <li>Müll & Setup: Dominik</li>
+          </ul>
+        </div>
+
+        <div class="card reveal reveal-delay-1">
+          <div class="card-icon">🖥️</div>
+          <h3>Hardware & Screens</h3>
+          <ul>
+            <li>Torsten: physische Installation von Screens und WLAN</li>
+            <li>Menüboards: Zurück zu PrimeScreen und Samsung Software</li>
+            <li>Harshita hat Handbuch und Video für Menüboard-Implementierung erstellt</li>
+            <li>Laptops und Handys: Bulk vs. Einzelbestellung klären</li>
+          </ul>
+        </div>
+
+        <div class="card reveal reveal-delay-2">
+          <div class="card-icon">🚚</div>
+          <h3>Lieferplattformen</h3>
+          <ul>
+            <li>Setup: Sonia informiert Katharina, Backend erstellt Account</li>
+            <li>Harshita befüllt mit Menü, Bildern, Store-Details</li>
+            <li>Lieferplattformen gehen 1 Tag nach Eröffnung live</li>
+            <li>Google-Profile eingerichtet, Store-Manager-Verifizierung ausstehend</li>
+          </ul>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- EQUIPMENT -->
+  <section id="equipment">
+    <div class="container">
+      <div class="section-header reveal">
+        <div class="section-label">Beschaffung</div>
+        <h2 class="section-title">Equipment & Ausstattung</h2>
+      </div>
+
+      <div class="highlight-box reveal">
+        <p><strong style="color: var(--text);">Ziel:</strong> Bestellungen konsolidieren über Hasenko statt einzelne Amazon-Käufe. Standardisierte Ausstattungssets je Umsatzkategorie (1M, 2M, 10M) erstellen, um wiederholte Einzelbestellungen zu vermeiden.</p>
+      </div>
+
+      <div class="card-grid">
+
+        <div class="card reveal reveal-delay-1">
+          <div class="card-icon">📦</div>
+          <h3>Regale & Montage</h3>
+          <ul>
+            <li>Eigenmontage spart 10–15% Aufschlag des GU</li>
+            <li>Zeitaufwand der Mitarbeiter als Opportunitätskosten beachten</li>
+            <li>Sicherheitsregel: Kein Arbeiten auf Leitern über 1,5 m Höhe</li>
+            <li>Denis und Team prüfen Gesamtkosten inkl. Arbeit</li>
+          </ul>
+        </div>
+
+        <div class="card reveal reveal-delay-2">
+          <div class="card-icon">🛒</div>
+          <h3>Content Stopper & Displays</h3>
+          <ul>
+            <li>Kommen gebrauchsfertig ohne Installation</li>
+            <li>Möglicherweise in Hasenko-Sammelbestellung enthalten</li>
+            <li>Preisvergleich Hasenko vs. Alternativanbieter läuft</li>
+          </ul>
+        </div>
+
+        <div class="card reveal reveal-delay-3">
+          <div class="card-icon">❄️</div>
+          <h3>Kühlung & Lagerung</h3>
+          <ul>
+            <li>Große Kühlschränke direkt vom Küchenunternehmen</li>
+            <li>Kickscore bietet bessere Preise als Küchenunternehmen</li>
+            <li>Bedarf hängt vom Lieferrhythmus ab</li>
+            <li>Hamburg-Beispiel: Lieferung Mo/Di/Do, 4–5 Tage Lücke</li>
+            <li>Muss vor Baubeginn festgelegt werden</li>
+          </ul>
+        </div>
+
+        <div class="card reveal reveal-delay-4">
+          <div class="card-icon">⚠️</div>
+          <h3>Herausforderung</h3>
+          <ul>
+            <li>Franchise- vs. firmeneigene Stores: unterschiedliche Rechnungsanforderungen</li>
+            <li>Erschwert Sammelbestellungen erheblich</li>
+            <li>Interne Rechnungslösung für übergreifende Bulk-Orders wird benötigt</li>
+          </ul>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- MARKETING -->
+  <section id="marketing">
+    <div class="container">
+      <div class="section-header reveal">
+        <div class="section-label">Launch-Vorbereitung</div>
+        <h2 class="section-title">Marketing & Store-Launch</h2>
+      </div>
+
+      <div class="timeline reveal">
+
+        <div class="timeline-item">
+          <div class="timeline-dot"><div class="timeline-dot-inner"></div></div>
+          <div class="timeline-content">
+            <h4>Stickering-Status je Standort</h4>
+            <p>Bonn: Masse erhalten, Baustellen-Sticker bereits angebracht. Oldenburg: Fenstermasse ausstehend. Dresden: Neue Fenster werden eingebaut, exakte Masse für finales Stickering erforderlich. Wichtig: Fenstergrösse (nicht Rahmen) benötigt, um Hamburg-Fehler zu vermeiden.</p>
+          </div>
+        </div>
+
+        <div class="timeline-item reveal">
+          <div class="timeline-dot"><div class="timeline-dot-inner"></div></div>
+          <div class="timeline-content">
+            <h4>Launch-Materialien</h4>
+            <p>Konsolidierung aller Materialien für Sammelbestellungen über alle Standorte. Eigener Bereich im "Wir machen Druck"-Shop für wiederverwendbare Eröffnungsmaterialien. John gestaltet alle Assets gesammelt statt standortweise. Alle Offline-Assets müssen mindestens 3 Tage vor Soft Opening geliefert sein.</p>
+          </div>
+        </div>
+
+        <div class="timeline-item reveal">
+          <div class="timeline-dot"><div class="timeline-dot-inner"></div></div>
+          <div class="timeline-content">
+            <h4>Entertainment & Events</h4>
+            <p>DJ und weitere Acts werden für alle vier Standorte gleichzeitig gebucht. Ziel: Konsistenz und bessere Preise durch gebündelten Auftrag.</p>
+          </div>
+        </div>
+
+        <div class="timeline-item reveal">
+          <div class="timeline-dot"><div class="timeline-dot-inner"></div></div>
+          <div class="timeline-content">
+            <h4>Materiallagerung</h4>
+            <p>Alle Materialien müssen an einem designierten Bereich im Store gelagert werden. Hintergrund: In Hamburg waren Items über den Store verteilt. Diese Situation soll vermieden werden.</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- TRAINING & HR -->
+  <section>
+    <div class="container">
+      <div class="section-header reveal">
+        <div class="section-label">Personal</div>
+        <h2 class="section-title">Training & HR</h2>
+      </div>
+
+      <div class="card-grid">
+
+        <div class="card reveal reveal-delay-1">
+          <div class="card-icon">🎓</div>
+          <h3>Trainingsmodelle</h3>
+          <ul>
+            <li>Volltraining: K2 bis Management-Aufgaben</li>
+            <li>Küchentraining: nur K2/K1-Ebene</li>
+            <li>Franchise-Partnertraining: 3 Wochen + 2 zusätzliche Tage</li>
+            <li>Standard: Franchisee trainiert in Berlin, falls kein firmeneigener Store in der Nähe</li>
+          </ul>
+        </div>
+
+        <div class="card reveal reveal-delay-2">
+          <div class="card-icon">💼</div>
+          <h3>Recruiting</h3>
+          <ul>
+            <li>Bonn und Dresden: Hiring bereits gestartet</li>
+            <li>Franchisees nutzen E2M-Plattform für Recruitment</li>
+          </ul>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- PROZESSE -->
+  <section id="prozesse">
+    <div class="container">
+      <div class="section-header reveal">
+        <div class="section-label">Organisation</div>
+        <h2 class="section-title">Meeting-Rhythmus & Prozesse</h2>
+      </div>
+
+      <div class="highlight-box reveal">
+        <p><strong style="color: var(--text);">Historischer Meilenstein:</strong> Diese formellen Projekt-Meetings für Store-Launches sind das erste Mal in der Unternehmensgeschichte. Das Team arbeitet auf standardisierte Checklisten und automatisierte Prozesse hin, statt manuelle Koordination bei jeder Eröffnung.</p>
+      </div>
+
+      <div class="card-grid">
+
+        <div class="card reveal reveal-delay-1">
+          <div class="card-icon">📅</div>
+          <h3>Meeting-Cadence</h3>
+          <ul>
+            <li>Wöchentliche Projekt-Meetings ab 6 Wochen vor erster Eröffnung</li>
+            <li>Erste Eröffnung: 17. April. Wöchentliches Meeting startet: Anfang März</li>
+            <li>Detailliertes Spreadsheet mit weiteren Tracking-Punkten vorhanden</li>
+          </ul>
+        </div>
+
+        <div class="card reveal reveal-delay-2">
+          <div class="card-icon">🔄</div>
+          <h3>Prozessverbesserungen</h3>
+          <ul>
+            <li>Standardisierte Checklisten für alle Store-Typen entwickeln</li>
+            <li>Bessere Transparenz zwischen Operations und Marketing aufbauen</li>
+            <li>Wiederholte Einzelkoordination durch Automatisierung ersetzen</li>
+            <li>Team: Lernprozess, wird mit jeder Eröffnung besser</li>
+          </ul>
+        </div>
+
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="reveal" style="text-align: center;">
+        <span class="badge badge-open"><span class="badge-dot"></span>14 offene Action Items</span>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <p>Protokoll vom <span>29. April 2026</span> &nbsp;·&nbsp; Store-Eröffnungen 2026</p>
+  </footer>
+
+  <script>
+    // Nav scroll effect
+    const nav = document.getElementById('nav');
+    window.addEventListener('scroll', () => {
+      nav.classList.toggle('scrolled', window.scrollY > 20);
+    });
+
+    // Intersection Observer for reveal animations
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+        }
+      });
+    }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+
+    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+  </script>
+
+</body>
+</html>
